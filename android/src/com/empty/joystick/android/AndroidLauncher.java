@@ -48,12 +48,16 @@ public class AndroidLauncher extends AndroidApplication {
             });
         }
 
-        Button btn = (Button)ssd.findViewById(R.id.btn_some);
+        final Button btn = (Button)ssd.findViewById(R.id.btn_some);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(AndroidLauncher.this, "Some some", Toast.LENGTH_SHORT).show();
-                touchPadTest.keyUp(Input.Keys.I);
+                if(touchPadTest.keyUp(Input.Keys.I)) {
+                    btn.setText("ON " + touchPadTest.getAmount() + " left");
+                } else {
+                    btn.setText("OFF");
+                }
             }
         });
 

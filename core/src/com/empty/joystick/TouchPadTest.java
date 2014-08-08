@@ -1,7 +1,9 @@
 package com.empty.joystick;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -49,6 +51,10 @@ public class TouchPadTest extends ApplicationAdapter implements InputProcessor{
 
     private float blockSpeed;
     private Vector3 lastPos;
+    private float touchpadY = 0.0f;
+    private float touchpadX = 0.0f;
+    private int amount = 0;
+    private boolean state = false;
 
     @Override
     public void create() {
@@ -96,15 +102,11 @@ public class TouchPadTest extends ApplicationAdapter implements InputProcessor{
         mainCamera.update();
         uiCamera.update();
 
-        float touchpadX = touchpad.getKnobPercentX();// * blockSpeed * Gdx.graphics.getDeltaTime();
-        float touchpadY = touchpad.getKnobPercentY();// * blockSpeed * Gdx.graphics.getDeltaTime();
+        if(touchpad != null) {
+            touchpadX = touchpad.getKnobPercentX();// * blockSpeed * Gdx.graphics.getDeltaTime();
+            touchpadY = touchpad.getKnobPercentY();// * blockSpeed * Gdx.graphics.getDeltaTime();
 
-        Vector3 joystickDirection = new Vector3(touchpadX, 0, touchpadY);
-        Vector3 translation = new Vector3(touchpadX * blockSpeed * Gdx.graphics.getDeltaTime(), 0, -1 * touchpadY * blockSpeed * Gdx.graphics.getDeltaTime());
-        lastPos.add(translation);
-
-        if(!joystickDirection.equals(Vector3.Zero) && !lastPos.equals(Vector3.Zero)) {
-            modelInstance.transform.setToLookAt(joystickDirection, Vector3.Y).setTranslation(lastPos);
+            joystickMovement();
         }
 
         //camera user tracking
@@ -117,6 +119,16 @@ public class TouchPadTest extends ApplicationAdapter implements InputProcessor{
 
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
+    }
+
+    private void joystickMovement() {
+        Vector3 joystickDirection = new Vector3(touchpadX, 0, touchpadY);
+        Vector3 translation = new Vector3(touchpadX * blockSpeed * Gdx.graphics.getDeltaTime(), 0, -1 * touchpadY * blockSpeed * Gdx.graphics.getDeltaTime());
+        lastPos.add(translation);
+
+        if(!joystickDirection.equals(Vector3.Zero) && !lastPos.equals(Vector3.Zero)) {
+            modelInstance.transform.setToLookAt(joystickDirection, Vector3.Y).setTranslation(lastPos);
+        }
     }
 
     @Override
@@ -144,6 +156,14 @@ public class TouchPadTest extends ApplicationAdapter implements InputProcessor{
     }
 
     protected void setupUi() {
+
+        stage = new Stage(uiViewport, batch);
+        Gdx.input.setInputProcessor(stage);
+
+        if(Gdx.app.getType() != Application.ApplicationType.Android && Gdx.app.getType() != Application.ApplicationType.iOS) {
+            return;
+        }
+
         touchpadSkin = new Skin();
         touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
         touchpadSkin.add("touchKnob", new Texture("data/touchKnob.png"));
@@ -157,10 +177,7 @@ public class TouchPadTest extends ApplicationAdapter implements InputProcessor{
         touchpad = new Touchpad(10, touchpadStyle);
         touchpad.setBounds(15, 15, 200, 200);
 
-        stage = new Stage(uiViewport, batch);
         stage.addActor(touchpad);
-
-        Gdx.input.setInputProcessor(stage);
     }
 
     @Override
@@ -170,6 +187,15 @@ public class TouchPadTest extends ApplicationAdapter implements InputProcessor{
 
     @Override
     public boolean keyUp(int keycode) {
+        Gdx.app.error("Joystick", "KEY: " + keycode);
+
+        if(keycode == Input.Keys.I) {
+            if(state) {
+                return state = false;
+            } else {
+                return state = true;
+            }
+        }
         return false;
     }
 
@@ -201,5 +227,9 @@ public class TouchPadTest extends ApplicationAdapter implements InputProcessor{
     @Override
     public boolean scrolled(int amount) {
         return false;
+    }
+
+    public int getAmount() {
+        return this.amount = this.amount + 1;
     }
 }
